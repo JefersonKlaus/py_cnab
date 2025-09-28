@@ -1,3 +1,3 @@
 from .cnab_builder_interface import ICnabBuilder
 
-__all__ = ['ICnabBuilder']
+__all__ = ["ICnabBuilder"]

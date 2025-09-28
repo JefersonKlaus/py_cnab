@@ -12,9 +12,10 @@ from decimal import Decimal
 @dataclass
 class EmpresaData:
     """Dados básicos da empresa para qualquer layout CNAB."""
+
     codigo_empresa: str
     nome_empresa: str
-    
+
     def __post_init__(self):
         if not self.codigo_empresa:
             raise ValueError("Código da empresa é obrigatório")
@@ -25,10 +26,11 @@ class EmpresaData:
 @dataclass
 class Cnab150EmpresaData(EmpresaData):
     """Dados específicos da empresa para CNAB 150."""
+
     codigo_convenio: str
     codigo_banco: str
     nome_banco: str
-    
+
     def __post_init__(self):
         super().__post_init__()
         if not self.codigo_convenio:
@@ -42,19 +44,21 @@ class Cnab150EmpresaData(EmpresaData):
 @dataclass
 class Cnab400EmpresaData(EmpresaData):
     """Dados específicos da empresa para CNAB 400."""
+
     pass  # Para CNAB 400, os dados básicos são suficientes
 
 
 @dataclass
 class DebitoAutomaticoData:
     """Dados para débito automático CNAB 150."""
+
     id_cliente_empresa: str
     agencia_debito: str
     conta_cliente: str
     vencimento: date
     valor: Decimal
-    codigo_movimento: str = '0'  # 0 = Débito Normal
-    
+    codigo_movimento: str = "0"  # 0 = Débito Normal
+
     def __post_init__(self):
         if not self.id_cliente_empresa:
             raise ValueError("ID do cliente na empresa é obrigatório")
@@ -64,7 +68,7 @@ class DebitoAutomaticoData:
             raise ValueError("Conta do cliente é obrigatória")
         if self.valor <= 0:
             raise ValueError("Valor deve ser positivo")
-        
+
         # Converte float para Decimal se necessário
         if isinstance(self.valor, (int, float)):
             self.valor = Decimal(str(self.valor))
@@ -73,14 +77,15 @@ class DebitoAutomaticoData:
 @dataclass
 class PagadorData:
     """Dados do pagador para cobrança."""
+
     tipo_inscricao: str  # '01' = CPF, '02' = CNPJ
     inscricao: str
     nome: str
     endereco: str
     cep: str
-    
+
     def __post_init__(self):
-        if self.tipo_inscricao not in ['01', '02']:
+        if self.tipo_inscricao not in ["01", "02"]:
             raise ValueError("Tipo de inscrição deve ser '01' (CPF) ou '02' (CNPJ)")
         if not self.inscricao:
             raise ValueError("Inscrição (CPF/CNPJ) é obrigatória")
@@ -95,6 +100,7 @@ class PagadorData:
 @dataclass
 class CobrancaData:
     """Dados para cobrança CNAB 400."""
+
     carteira: str
     agencia: str
     conta: str
@@ -107,8 +113,8 @@ class CobrancaData:
     data_emissao: date
     valor: Decimal
     pagador: PagadorData
-    ocorrencia: str = '01'  # '01' = Remessa
-    
+    ocorrencia: str = "01"  # '01' = Remessa
+
     def __post_init__(self):
         if not self.carteira:
             raise ValueError("Carteira é obrigatória")
@@ -124,7 +130,7 @@ class CobrancaData:
             raise ValueError("Número do documento é obrigatório")
         if self.valor <= 0:
             raise ValueError("Valor deve ser positivo")
-        
+
         # Converte float para Decimal se necessário
         if isinstance(self.valor, (int, float)):
             self.valor = Decimal(str(self.valor))
@@ -133,8 +139,9 @@ class CobrancaData:
 @dataclass
 class CnabRequest:
     """Request base para geração de arquivos CNAB."""
+
     nsa: int  # Número Sequencial do Arquivo
-    
+
     def __post_init__(self):
         if self.nsa <= 0:
             raise ValueError("NSA deve ser um número positivo")
@@ -143,9 +150,10 @@ class CnabRequest:
 @dataclass
 class Cnab150Request(CnabRequest):
     """Request específico para CNAB 150."""
+
     empresa: Cnab150EmpresaData
     debitos: List[DebitoAutomaticoData] = field(default_factory=list)
-    
+
     def __post_init__(self):
         super().__post_init__()
         if not self.debitos:
@@ -155,9 +163,10 @@ class Cnab150Request(CnabRequest):
 @dataclass
 class Cnab400Request(CnabRequest):
     """Request específico para CNAB 400."""
+
     empresa: Cnab400EmpresaData
     cobrancas: List[CobrancaData] = field(default_factory=list)
-    
+
     def __post_init__(self):
         super().__post_init__()
         if not self.cobrancas:
