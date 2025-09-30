@@ -6,14 +6,14 @@ from datetime import date
 from decimal import Decimal
 
 from src import (
-    CnabGenerator,
     Cnab150EmpresaData,
+    Cnab150Request,
     Cnab400EmpresaData,
+    Cnab400Request,
+    CnabGenerator,
+    CobrancaData,
     DebitoAutomaticoData,
     PagadorData,
-    CobrancaData,
-    Cnab150Request,
-    Cnab400Request,
 )
 
 
@@ -26,7 +26,7 @@ def exemplo_cnab_150():
         empresa = Cnab150EmpresaData(
             codigo_empresa="123456789",
             nome_empresa="MINHA EMPRESA DE TESTE",
-            codigo_convenio="12345678901234567890",
+            codigo_convenio="18732000000000000000",
             codigo_banco="237",
             nome_banco="BRADESCO",
         )
@@ -40,7 +40,8 @@ def exemplo_cnab_150():
                 vencimento=date(2025, 10, 20),
                 valor=Decimal("199.99"),
                 tipo_inscricao="2",  # CPF
-                inscricao="12345678901",  # CPF do cliente
+                inscricao="11144477735",  # CPF do cliente válido
+                tipo_operacao="1",  # Tipo de operação
             ),
             DebitoAutomaticoData(
                 id_cliente_empresa="FATURA-XYZ-02",
@@ -50,6 +51,7 @@ def exemplo_cnab_150():
                 valor=Decimal("50.00"),
                 tipo_inscricao="1",  # CNPJ
                 inscricao="12.345.678/0001-90",  # CNPJ do cliente
+                tipo_operacao="1",  # Tipo de operação
             ),
         ]
 
@@ -66,8 +68,8 @@ def exemplo_cnab_150():
         print(arquivo_cnab)
 
         # Salva o arquivo (opcional)
-        # CnabGenerator.save_file(arquivo_cnab, "debito_150.rem")
-        # print("Arquivo salvo como 'debito_150.rem'")
+        CnabGenerator.save_file(arquivo_cnab, "debito_150.rem")
+        print("Arquivo salvo como 'debito_150.rem'")
 
         # Valida o arquivo
         errors = CnabGenerator.validate_file(arquivo_cnab, "150_debito")

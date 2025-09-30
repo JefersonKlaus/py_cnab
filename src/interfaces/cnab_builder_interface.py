@@ -5,6 +5,7 @@ Define o contrato comum que todos os builders devem seguir.
 
 from abc import ABC, abstractmethod
 from typing import List
+
 from ..models import CnabRequest
 
 

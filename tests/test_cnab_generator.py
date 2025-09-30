@@ -2,20 +2,21 @@
 Testes unitários para a biblioteca py_cnab.
 """
 
-import pytest
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
+from src import CnabGenerator
 from src.models import (
     Cnab150EmpresaData,
+    Cnab150Request,
     Cnab400EmpresaData,
+    Cnab400Request,
+    CobrancaData,
     DebitoAutomaticoData,
     PagadorData,
-    CobrancaData,
-    Cnab150Request,
-    Cnab400Request,
 )
-from src import CnabGenerator
 
 
 class TestModels:
@@ -53,12 +54,13 @@ class TestModels:
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
             tipo_inscricao="2",  # CPF
-            inscricao="12345678901",
+            inscricao="11144477735",  # CPF válido
+            tipo_operacao="1",
         )
         assert debito.id_cliente_empresa == "CONTRATO001"
         assert debito.valor == Decimal("199.99")
         assert debito.tipo_inscricao == "2"
-        assert debito.inscricao == "12345678901"  # Limpo de caracteres especiais
+        assert debito.inscricao == "11144477735"  # Limpo de caracteres especiais
 
     def test_debito_automatico_data_invalid_valor(self):
         """Testa validação de valor inválido."""
@@ -70,7 +72,8 @@ class TestModels:
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("0"),
                 tipo_inscricao="2",
-                inscricao="12345678901",
+                inscricao="11122233344",
+                tipo_operacao="1",
             )
 
     def test_debito_automatico_data_invalid_tipo_inscricao(self):
@@ -86,7 +89,8 @@ class TestModels:
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
                 tipo_inscricao="3",  # Tipo inválido
-                inscricao="12345678901",
+                inscricao="11122233344",
+                tipo_operacao="1",
             )
 
     def test_debito_automatico_data_invalid_cpf_length(self):
@@ -100,6 +104,7 @@ class TestModels:
                 valor=Decimal("100.00"),
                 tipo_inscricao="2",  # CPF
                 inscricao="123456789",  # CPF com apenas 9 dígitos
+                tipo_operacao="1",
             )
 
     def test_debito_automatico_data_invalid_cnpj_length(self):
@@ -113,6 +118,7 @@ class TestModels:
                 valor=Decimal("100.00"),
                 tipo_inscricao="1",  # CNPJ
                 inscricao="123456789012",  # CNPJ com apenas 12 dígitos
+                tipo_operacao="1",
             )
 
     def test_debito_automatico_data_inscricao_format_cleanup(self):
@@ -125,9 +131,26 @@ class TestModels:
             valor=Decimal("100.00"),
             tipo_inscricao="1",  # CNPJ
             inscricao="12.345.678/0001-90",  # CNPJ com formatação
+            tipo_operacao="1",
         )
         # Deve remover caracteres especiais
         assert debito.inscricao == "12345678000190"
+
+    def test_debito_automatico_data_invalid_tipo_operacao(self):
+        """Testa validação de tipo de operação inválido."""
+        with pytest.raises(
+            ValueError, match="Tipo de operação deve ser '1', '2' ou '3'"
+        ):
+            DebitoAutomaticoData(
+                id_cliente_empresa="CONTRATO001",
+                agencia_debito="1234",
+                conta_cliente="56789-0",
+                vencimento=date(2025, 10, 30),
+                valor=Decimal("100.00"),
+                tipo_inscricao="2",  # CPF
+                inscricao="11122233344",
+                tipo_operacao="4",  # Tipo inválido
+            )
 
 
 class TestCnabGenerator:
@@ -150,7 +173,8 @@ class TestCnabGenerator:
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
             tipo_inscricao="2",  # CPF
-            inscricao="12345678901",
+            inscricao="11122233344",  # CPF válido
+            tipo_operacao="1",
         )
 
         request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
@@ -163,9 +187,9 @@ class TestCnabGenerator:
         # Verifica quebras de linha CNAB
         assert "\r\n" in arquivo
 
-        # Verifica se tem pelo menos 3 linhas (header, detalhe, trailer)
+        # Verifica se tem exatamente 3 linhas (header, detalhe, trailer)
         linhas = arquivo.split("\r\n")
-        assert len(linhas) >= 4  # 3 linhas + linha vazia no final
+        assert len(linhas) == 3
 
     def test_validate_file_cnab_150(self):
         """Testa validação de arquivo CNAB 150."""
@@ -185,6 +209,7 @@ class TestCnabGenerator:
             valor=Decimal("199.99"),
             tipo_inscricao="1",  # CNPJ
             inscricao="12.345.678/0001-90",
+            tipo_operacao="1",
         )
 
         request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])

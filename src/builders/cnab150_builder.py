@@ -7,11 +7,11 @@ from typing import List
 
 from ..interfaces import ICnabBuilder
 from ..models import Cnab150Request, CnabRequest
-from ..utils import CnabFieldFormatter, CnabValidator, CnabConstants
+from ..utils import CnabConstants, CnabFieldFormatter, CnabValidator
 
 
 class Cnab150Builder(ICnabBuilder):
-    """Construtor para arquivos CNAB 150 (Débito Automático)."""
+    """Construtor para arquivos CNAB 150/DBT627 - Versão 08 (Débito Automático)."""
 
     def __init__(self):
         self.formatter = CnabFieldFormatter()
@@ -120,13 +120,23 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += inscricao_formatada
 
             # E11 - Posição 146-146: Tipo de Operação (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            detalhe += self.formatter.format_field(debito.tipo_operacao, 1)
 
             # E12 - Posição 147-147: Utilização do Cheque Especial (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            # Usa "0" como padrão se campo estiver vazio (opcional)
+            cheque_especial = (
+                debito.utilizacao_cheque_especial
+                if debito.utilizacao_cheque_especial
+                else "0"
+            )
+            detalhe += self.formatter.format_field(cheque_especial, 1)
 
             # E13 - Posição 148-148: Opção de Débito Parcial ou integral após o vencimento (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            # Usa "0" como padrão se campo estiver vazio (opcional)
+            debito_parcial = (
+                debito.opcao_debito_parcial if debito.opcao_debito_parcial else "0"
+            )
+            detalhe += self.formatter.format_field(debito_parcial, 1)
 
             # E14 - Posição 149-149: Reservado para o futuro (1 char)
             detalhe += self.formatter.format_field("", 1)
@@ -158,10 +168,10 @@ class Cnab150Builder(ICnabBuilder):
         trailer += self.formatter.format_field(CnabConstants.TRAILER_RECORD, 1)
 
         # Z02 - Posição 002-007: Total de registros do arquivo (6 chars)
-        trailer += self.formatter.format_field(total_records, 6, "0", True)
+        trailer += self.formatter.format_field(str(total_records), 6, "0", True)
 
         # Z03 - Posição 008-024: Valor total dos registros do arquivo (17 chars) - em centavos
-        trailer += self.formatter.format_field(valor_total, 17, "0", True)
+        trailer += self.formatter.format_field(str(valor_total), 17, "0", True)
 
         # Z04 - Posição 025-150: Reservado para o futuro (126 chars)
         trailer += self.formatter.format_field("", 126)

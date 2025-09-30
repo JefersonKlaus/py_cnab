@@ -3,12 +3,12 @@ Construtor para arquivos CNAB 400 (Cobrança).
 """
 
 from datetime import date
-from typing import List
 from decimal import Decimal
+from typing import List
 
 from ..interfaces import ICnabBuilder
 from ..models import Cnab400Request, CnabRequest
-from ..utils import CnabFieldFormatter, CnabValidator, CnabConstants
+from ..utils import CnabConstants, CnabFieldFormatter, CnabValidator
 
 
 class Cnab400Builder(ICnabBuilder):

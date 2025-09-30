@@ -3,6 +3,7 @@ Serviços para geração e manipulação de arquivos CNAB.
 """
 
 from typing import List
+
 from ..interfaces import ICnabBuilder
 from ..models import CnabRequest
 from ..utils import CnabConstants
@@ -32,12 +33,12 @@ class CnabGeneratorService:
             lines.extend(detail_records)
 
             # Trailer
-            total_records = len(lines) + 1
+            total_records = len(lines) + 1  # +1 para incluir o próprio trailer
             trailer = self.builder.build_trailer(request, total_records)
             lines.append(trailer)
 
             # Retorna o arquivo com quebras de linha CNAB
-            return CnabConstants.LINE_BREAK.join(lines) + CnabConstants.LINE_BREAK
+            return CnabConstants.LINE_BREAK.join(lines)
 
         except Exception as e:
             raise ValueError(f"Erro ao gerar arquivo CNAB: {str(e)}") from e
@@ -57,8 +58,8 @@ class CnabGeneratorService:
 
         # A validação específica é feita nos models através de __post_init__
         # Aqui fazemos apenas validações gerais
-        if request.nsa <= 0:
-            raise ValueError("NSA deve ser um número positivo")
+        if request.nsa < 0:
+            raise ValueError("NSA deve ser zero ou um número positivo")
 
 
 class CnabFileService:
@@ -81,8 +82,8 @@ class CnabFileService:
             IOError: Se não for possível escrever no arquivo
         """
         try:
-            with open(filepath, "w", encoding="latin-1") as file:
-                file.write(content)
+            with open(filepath, "wb") as file:
+                file.write(content.encode("latin-1"))
         except Exception as e:
             raise IOError(f"Erro ao salvar arquivo {filepath}: {str(e)}") from e
 

@@ -5,8 +5,8 @@ Define estruturas claras e validadas para cada tipo de arquivo.
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List, Optional
 from decimal import Decimal
+from typing import List, Optional
 
 
 @dataclass
@@ -59,7 +59,14 @@ class DebitoAutomaticoData:
     valor: Decimal
     tipo_inscricao: str  # '1' = CNPJ, '2' = CPF
     inscricao: str
+    tipo_operacao: str = "1"  # '1', '2' ou '3'
     codigo_movimento: str = "0"
+    utilizacao_cheque_especial: str = (
+        "2"  # '1'=permite, '2'=não permite (padrão: não permite)
+    )
+    opcao_debito_parcial: str = (
+        "2"  # '1'=permite parcial/pós-vencimento, '2'=não permite pós-vencimento (padrão: não permite)
+    )
 
     def __post_init__(self):
         if not self.id_cliente_empresa:
@@ -74,6 +81,8 @@ class DebitoAutomaticoData:
             raise ValueError("Tipo de inscrição deve ser '1' (CNPJ) ou '2' (CPF)")
         if not self.inscricao:
             raise ValueError("Inscrição (CPF/CNPJ) é obrigatória")
+        if self.tipo_operacao not in ["1", "2", "3"]:
+            raise ValueError("Tipo de operação deve ser '1', '2' ou '3'")
 
         # Converte float para Decimal se necessário
         if isinstance(self.valor, (int, float)):
@@ -160,8 +169,8 @@ class CnabRequest:
     nsa: int  # Número Sequencial do Arquivo
 
     def __post_init__(self):
-        if self.nsa <= 0:
-            raise ValueError("NSA deve ser um número positivo")
+        if self.nsa < 0:
+            raise ValueError("NSA deve ser zero ou um número positivo")
 
 
 @dataclass

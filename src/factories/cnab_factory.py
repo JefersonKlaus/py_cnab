@@ -5,8 +5,8 @@ Factory para criação de builders CNAB.
 from enum import Enum
 from typing import Dict, Type
 
-from ..interfaces import ICnabBuilder
 from ..builders import Cnab150Builder, Cnab400Builder
+from ..interfaces import ICnabBuilder
 
 
 class CnabFormat(Enum):
