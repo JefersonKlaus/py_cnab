@@ -36,16 +36,20 @@ def exemplo_cnab_150():
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO-001",
                 agencia_debito="1234",
-                conta_cliente="55566-7",
+                conta_cliente="555667",
                 vencimento=date(2025, 10, 20),
                 valor=Decimal("199.99"),
+                tipo_inscricao="2",  # CPF
+                inscricao="12345678901",  # CPF do cliente
             ),
             DebitoAutomaticoData(
                 id_cliente_empresa="FATURA-XYZ-02",
                 agencia_debito="4321",
-                conta_cliente="98765-4",
+                conta_cliente="987654",
                 vencimento=date(2025, 10, 22),
                 valor=Decimal("50.00"),
+                tipo_inscricao="1",  # CNPJ
+                inscricao="12.345.678/0001-90",  # CNPJ do cliente
             ),
         ]
 

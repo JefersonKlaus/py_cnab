@@ -57,7 +57,9 @@ class DebitoAutomaticoData:
     conta_cliente: str
     vencimento: date
     valor: Decimal
-    codigo_movimento: str = "0"  # 0 = Débito Normal
+    tipo_inscricao: str  # '1' = CNPJ, '2' = CPF
+    inscricao: str
+    codigo_movimento: str = "0"
 
     def __post_init__(self):
         if not self.id_cliente_empresa:
@@ -68,10 +70,25 @@ class DebitoAutomaticoData:
             raise ValueError("Conta do cliente é obrigatória")
         if self.valor <= 0:
             raise ValueError("Valor deve ser positivo")
+        if self.tipo_inscricao not in ["1", "2"]:
+            raise ValueError("Tipo de inscrição deve ser '1' (CNPJ) ou '2' (CPF)")
+        if not self.inscricao:
+            raise ValueError("Inscrição (CPF/CNPJ) é obrigatória")
 
         # Converte float para Decimal se necessário
         if isinstance(self.valor, (int, float)):
             self.valor = Decimal(str(self.valor))
+
+        # Limpa caracteres não numéricos da inscrição
+        self.inscricao = "".join(filter(str.isdigit, self.inscricao))
+
+        # Valida tamanho da inscrição
+        if self.tipo_inscricao == "2":  # CPF
+            if len(self.inscricao) != 11:
+                raise ValueError("CPF deve ter exatamente 11 dígitos")
+        elif self.tipo_inscricao == "1":  # CNPJ
+            if len(self.inscricao) != 14:
+                raise ValueError("CNPJ deve ter exatamente 14 dígitos")
 
 
 @dataclass

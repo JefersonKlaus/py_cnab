@@ -85,10 +85,10 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field(debito.id_cliente_empresa, 25)
 
             # E03 - Posição 027-030: Agência para Débito (4 chars)
-            detalhe += self.formatter.format_field(debito.agencia_debito, 4)
+            detalhe += self.formatter.format_field(debito.agencia_debito, 4, "0", True)
 
             # E04 - Posição 031-050: Identificação do Cliente na Depositária (Conta) (20 chars)
-            detalhe += self.formatter.format_field(debito.conta_cliente, 20)
+            detalhe += self.formatter.format_field(debito.conta_cliente, 20, "0", True)
 
             # E05 - Posição 051-058: Data do Vencimento (AAAAMMDD) (8 chars)
             detalhe += self.formatter.format_field(
@@ -110,10 +110,14 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field("", 1)
 
             # E09 - Posição 130-130: Tipo de Identificação (1=CNPJ, 2=CPF) (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            detalhe += self.formatter.format_field(debito.tipo_inscricao, 1)
 
             # E10 - Posição 131-145: Identificação (Número do CPF/CNPJ) (15 chars)
-            detalhe += self.formatter.format_field("", 15, "0", True)
+            # Preenchido com zeros à esquerda conforme manual CNAB 150
+            inscricao_formatada = self.formatter.format_inscricao(
+                debito.inscricao, debito.tipo_inscricao
+            )
+            detalhe += inscricao_formatada
 
             # E11 - Posição 146-146: Tipo de Operação (1 char)
             detalhe += self.formatter.format_field("", 1)

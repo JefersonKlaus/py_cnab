@@ -52,9 +52,13 @@ class TestModels:
             conta_cliente="56789-0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
+            tipo_inscricao="2",  # CPF
+            inscricao="12345678901",
         )
         assert debito.id_cliente_empresa == "CONTRATO001"
         assert debito.valor == Decimal("199.99")
+        assert debito.tipo_inscricao == "2"
+        assert debito.inscricao == "12345678901"  # Limpo de caracteres especiais
 
     def test_debito_automatico_data_invalid_valor(self):
         """Testa validação de valor inválido."""
@@ -65,7 +69,65 @@ class TestModels:
                 conta_cliente="56789-0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("0"),
+                tipo_inscricao="2",
+                inscricao="12345678901",
             )
+
+    def test_debito_automatico_data_invalid_tipo_inscricao(self):
+        """Testa validação de tipo de inscrição inválido."""
+        with pytest.raises(
+            ValueError,
+            match="Tipo de inscrição deve ser '1' \\(CNPJ\\) ou '2' \\(CPF\\)",
+        ):
+            DebitoAutomaticoData(
+                id_cliente_empresa="CONTRATO001",
+                agencia_debito="1234",
+                conta_cliente="56789-0",
+                vencimento=date(2025, 10, 30),
+                valor=Decimal("100.00"),
+                tipo_inscricao="3",  # Tipo inválido
+                inscricao="12345678901",
+            )
+
+    def test_debito_automatico_data_invalid_cpf_length(self):
+        """Testa validação de tamanho de CPF inválido."""
+        with pytest.raises(ValueError, match="CPF deve ter exatamente 11 dígitos"):
+            DebitoAutomaticoData(
+                id_cliente_empresa="CONTRATO001",
+                agencia_debito="1234",
+                conta_cliente="56789-0",
+                vencimento=date(2025, 10, 30),
+                valor=Decimal("100.00"),
+                tipo_inscricao="2",  # CPF
+                inscricao="123456789",  # CPF com apenas 9 dígitos
+            )
+
+    def test_debito_automatico_data_invalid_cnpj_length(self):
+        """Testa validação de tamanho de CNPJ inválido."""
+        with pytest.raises(ValueError, match="CNPJ deve ter exatamente 14 dígitos"):
+            DebitoAutomaticoData(
+                id_cliente_empresa="CONTRATO001",
+                agencia_debito="1234",
+                conta_cliente="56789-0",
+                vencimento=date(2025, 10, 30),
+                valor=Decimal("100.00"),
+                tipo_inscricao="1",  # CNPJ
+                inscricao="123456789012",  # CNPJ com apenas 12 dígitos
+            )
+
+    def test_debito_automatico_data_inscricao_format_cleanup(self):
+        """Testa limpeza de caracteres especiais na inscrição."""
+        debito = DebitoAutomaticoData(
+            id_cliente_empresa="CONTRATO001",
+            agencia_debito="1234",
+            conta_cliente="56789-0",
+            vencimento=date(2025, 10, 30),
+            valor=Decimal("100.00"),
+            tipo_inscricao="1",  # CNPJ
+            inscricao="12.345.678/0001-90",  # CNPJ com formatação
+        )
+        # Deve remover caracteres especiais
+        assert debito.inscricao == "12345678000190"
 
 
 class TestCnabGenerator:
@@ -87,6 +149,8 @@ class TestCnabGenerator:
             conta_cliente="56789-0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
+            tipo_inscricao="2",  # CPF
+            inscricao="12345678901",
         )
 
         request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
@@ -119,6 +183,8 @@ class TestCnabGenerator:
             conta_cliente="56789-0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
+            tipo_inscricao="1",  # CNPJ
+            inscricao="12.345.678/0001-90",
         )
 
         request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])

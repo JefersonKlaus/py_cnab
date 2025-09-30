@@ -59,6 +59,27 @@ class CnabFieldFormatter:
         """Converte valor monetário para centavos."""
         return int(valor * 100)
 
+    @staticmethod
+    def format_inscricao(inscricao: str, tipo_inscricao: str) -> str:
+        """
+        Formata inscrição (CPF/CNPJ) removendo caracteres não numéricos
+        e preenchendo com zeros à esquerda para completar 15 posições.
+
+        Args:
+            inscricao: CPF ou CNPJ
+            tipo_inscricao: '1' para CNPJ, '2' para CPF
+
+        Returns:
+            Inscrição formatada com 15 posições (preenchida com zeros à esquerda)
+            conforme especificação do manual CNAB 150, página 22, campo E10
+        """
+        # Remove caracteres não numéricos
+        inscricao_limpa = "".join(filter(str.isdigit, inscricao))
+
+        # Preenche com zeros à esquerda para completar as 15 posições
+        # conforme manual CNAB 150
+        return inscricao_limpa.zfill(15)
+
 
 class SequentialCounter:
     """Contador sequencial para registros CNAB."""
