@@ -88,7 +88,7 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field(debito.agencia_debito, 4, "0", True)
 
             # E04 - Posição 031-050: Identificação do Cliente na Depositária (Conta) (20 chars)
-            detalhe += self.formatter.format_field(debito.conta_cliente, 20, "0", True)
+            detalhe += self.formatter.format_field(debito.conta_cliente, 20)
 
             # E05 - Posição 051-058: Data do Vencimento (AAAAMMDD) (8 chars)
             detalhe += self.formatter.format_field(

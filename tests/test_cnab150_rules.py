@@ -145,6 +145,65 @@ class TestCnab150Rules:
                 tipo_op_arquivo == tipo_operacao
             ), f"Tipo de operação incorreto: esperado {tipo_operacao}, encontrado {tipo_op_arquivo}"
 
+    def test_conta_field_e04_alphanumeric_format(self):
+        """Testa se o campo E04 (conta) está formatado como alfanumérico - posições 31-50."""
+        empresa = Cnab150EmpresaData(
+            codigo_empresa="123456",
+            nome_empresa="TESTE EMPRESA",
+            codigo_convenio="18732000000000000000",
+            codigo_banco="237",
+            nome_banco="BRADESCO",
+        )
+
+        # Testa com conta alfanumérica
+        debito = DebitoAutomaticoData(
+            id_cliente_empresa="CONTRATO001",
+            agencia_debito="1234",
+            conta_cliente="6831",  # Conta que estava gerando o problema
+            vencimento=date(2025, 10, 30),
+            valor=Decimal("100.00"),
+            tipo_inscricao="2",  # CPF
+            inscricao="11144477735",
+            tipo_operacao="1",
+        )
+
+        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        arquivo = CnabGenerator.generate_cnab_150(request)
+
+        linhas = arquivo.strip().split("\r\n")
+        detalhe = linhas[1]  # Primeiro registro de detalhe
+
+        # Verifica posições 31-50 (índice 30-49): conta deve ser alfanumérica, alinhada à esquerda
+        conta_campo = detalhe[30:50]
+        expected_conta = "6831                "  # 4 chars + 16 espaços = 20 chars
+        assert (
+            conta_campo == expected_conta
+        ), f"Campo E04 (conta) mal formatado: '{conta_campo}' (esperado: '{expected_conta}')"
+
+        # Testa com conta mais longa
+        debito2 = DebitoAutomaticoData(
+            id_cliente_empresa="CONTRATO002",
+            agencia_debito="1234",
+            conta_cliente="123456789012345",  # 15 caracteres
+            vencimento=date(2025, 10, 30),
+            valor=Decimal("200.00"),
+            tipo_inscricao="2",
+            inscricao="11144477735",
+            tipo_operacao="1",
+        )
+
+        request2 = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito2])
+        arquivo2 = CnabGenerator.generate_cnab_150(request2)
+
+        linhas2 = arquivo2.strip().split("\r\n")
+        detalhe2 = linhas2[1]
+
+        conta_campo2 = detalhe2[30:50]
+        expected_conta2 = "123456789012345     "  # 15 chars + 5 espaços = 20 chars
+        assert (
+            conta_campo2 == expected_conta2
+        ), f"Campo E04 (conta longa) mal formatado: '{conta_campo2}' (esperado: '{expected_conta2}')"
+
     def test_complete_record_lengths(self):
         """Testa se os campos específicos dos erros estão corretos."""
         empresa = Cnab150EmpresaData(
