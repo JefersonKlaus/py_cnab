@@ -59,6 +59,7 @@ class DebitoAutomaticoData:
     valor: Decimal
     tipo_inscricao: str  # '1' = CNPJ, '2' = CPF
     inscricao: str
+    codigo_interno: str = ""  # Control interno da instituição (53 chars)
     tipo_operacao: str = "1"  # '1', '2' ou '3'
     codigo_movimento: str = "0"
     utilizacao_cheque_especial: str = (

@@ -212,9 +212,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## 📞 Suporte
 
-- 📧 Email: [seu-email@exemplo.com]
+- 📧 Email: [jefersonklaus@gmail.com]
 - 🐛 Issues: [GitHub Issues](https://github.com/JefersonKlaus/py_cnab/issues)
-- 📖 Documentação: [Wiki do Projeto](https://github.com/JefersonKlaus/py_cnab/wiki)
 
 ---
 

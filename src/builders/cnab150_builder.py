@@ -104,7 +104,7 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field(CnabConstants.REAL, 2)
 
             # E08 - Posição 076-128: Uso da Instituição Destinatária (53 chars)
-            detalhe += self.formatter.format_field("", 53)
+            detalhe += self.formatter.format_field(debito.codigo_interno, 53)
 
             # Posição 129-129: Campo relacionado ao E08 para tratamento acordado (1 char)
             detalhe += self.formatter.format_field("", 1)
