@@ -44,7 +44,6 @@ from src import (
 
 # Dados da empresa
 empresa = Cnab150EmpresaData(
-    codigo_empresa="123456789",
     nome_empresa="MINHA EMPRESA",
     codigo_convenio="12345678901234567890",
     codigo_banco="237",
@@ -178,7 +177,7 @@ A biblioteca inclui validação automática:
 # Validação automática nos models
 try:
     empresa = Cnab150EmpresaData(
-        codigo_empresa="",  # ❌ Erro: obrigatório
+        nome_empresa="",  # ❌ Erro: obrigatório
         # ...
     )
 except ValueError as e:

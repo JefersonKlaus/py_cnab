@@ -16,7 +16,6 @@ class TestCnab150Rules:
     def test_layout_version_field_a09(self):
         """Testa se o campo A09 (versão do layout) está correto - posições 80-81."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",
@@ -47,7 +46,6 @@ class TestCnab150Rules:
     def test_inscricao_field_e10_cpf(self):
         """Testa se o campo E10 (inscrição CPF) está formatado corretamente - posições 131-145."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",
@@ -80,7 +78,6 @@ class TestCnab150Rules:
     def test_inscricao_field_e10_cnpj(self):
         """Testa se o campo E10 (inscrição CNPJ) está formatado corretamente - posições 131-145."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",
@@ -113,7 +110,6 @@ class TestCnab150Rules:
     def test_tipo_operacao_field_e11(self):
         """Testa se o campo E11 (tipo de operação) está preenchido corretamente - posição 146."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="12345678901234567890",
             codigo_banco="237",
@@ -148,7 +144,6 @@ class TestCnab150Rules:
     def test_conta_field_e04_alphanumeric_format(self):
         """Testa se o campo E04 (conta) está formatado como alfanumérico - posições 31-50."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",
@@ -207,7 +202,6 @@ class TestCnab150Rules:
     def test_complete_record_lengths(self):
         """Testa se os campos específicos dos erros estão corretos."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",

@@ -13,12 +13,9 @@ from typing import List, Optional
 class EmpresaData:
     """Dados básicos da empresa para qualquer layout CNAB."""
 
-    codigo_empresa: str
     nome_empresa: str
 
     def __post_init__(self):
-        if not self.codigo_empresa:
-            raise ValueError("Código da empresa é obrigatório")
         if not self.nome_empresa:
             raise ValueError("Nome da empresa é obrigatório")
 
@@ -45,7 +42,12 @@ class Cnab150EmpresaData(EmpresaData):
 class Cnab400EmpresaData(EmpresaData):
     """Dados específicos da empresa para CNAB 400."""
 
-    pass  # Para CNAB 400, os dados básicos são suficientes
+    codigo_empresa: str
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.codigo_empresa:
+            raise ValueError("Código da empresa é obrigatório")
 
 
 @dataclass

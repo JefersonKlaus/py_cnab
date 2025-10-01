@@ -25,27 +25,39 @@ class TestModels:
     def test_cnab150_empresa_data_valid(self):
         """Testa criação válida de dados da empresa CNAB 150."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="12345678901234567890",
             codigo_banco="237",
             nome_banco="BRADESCO",
         )
-        assert empresa.codigo_empresa == "123456"
         assert empresa.nome_empresa == "TESTE EMPRESA"
 
     def test_cnab150_empresa_data_invalid(self):
         """Testa validação de dados inválidos."""
-        with pytest.raises(ValueError, match="Código da empresa é obrigatório"):
+        with pytest.raises(ValueError, match="Nome da empresa é obrigatório"):
             Cnab150EmpresaData(
-                codigo_empresa="",
-                nome_empresa="TESTE",
+                nome_empresa="",
                 codigo_convenio="123",
                 codigo_banco="237",
                 nome_banco="BRADESCO",
             )
 
-    def test_debito_automatico_data_valid(self):
+    def test_cnab400_empresa_data_valid(self):
+        """Testa criação válida de dados da empresa CNAB 400."""
+        empresa = Cnab400EmpresaData(
+            codigo_empresa="123456",
+            nome_empresa="TESTE EMPRESA",
+        )
+        assert empresa.codigo_empresa == "123456"
+        assert empresa.nome_empresa == "TESTE EMPRESA"
+
+    def test_cnab400_empresa_data_invalid(self):
+        """Testa validação de dados inválidos para CNAB 400."""
+        with pytest.raises(ValueError, match="Código da empresa é obrigatório"):
+            Cnab400EmpresaData(
+                codigo_empresa="",
+                nome_empresa="TESTE",
+            )
         """Testa criação válida de débito automático."""
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
@@ -159,7 +171,6 @@ class TestCnabGenerator:
     def test_generate_cnab_150_success(self):
         """Testa geração bem-sucedida de CNAB 150."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="12345678901234567890",
             codigo_banco="237",
@@ -194,7 +205,6 @@ class TestCnabGenerator:
     def test_validate_file_cnab_150(self):
         """Testa validação de arquivo CNAB 150."""
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456",
             nome_empresa="TESTE EMPRESA",
             codigo_convenio="12345678901234567890",
             codigo_banco="237",

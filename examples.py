@@ -24,7 +24,6 @@ def exemplo_cnab_150():
     try:
         # Dados da empresa
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456789",
             nome_empresa="MINHA EMPRESA DE TESTE",
             codigo_convenio="18732000000000000000",
             codigo_banco="237",
