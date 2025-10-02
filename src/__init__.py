@@ -6,7 +6,7 @@ Fornece uma interface simplificada para uso externo.
 from .factories import CnabBuilderFactory, CnabFormat
 from .models import (
     Cnab150EmpresaData,
-    Cnab150Request,
+    DBT627V8Request,
     Cnab400EmpresaData,
     Cnab400Request,
     CnabRequest,
@@ -23,7 +23,7 @@ class CnabGenerator:
     """Interface principal para geração de arquivos CNAB."""
 
     @staticmethod
-    def generate_cnab_150(request: Cnab150Request) -> str:
+    def generate_cnab_150(request: DBT627V8Request) -> str:
         """Gera arquivo CNAB 150 (Débito Automático)."""
         builder = CnabBuilderFactory.create_builder(CnabFormat.CNAB_150_DEBITO.value)
         service = CnabGeneratorService(builder)
@@ -65,7 +65,7 @@ __all__ = [
     "PagadorData",
     "CobrancaData",
     "CnabRequest",
-    "Cnab150Request",
+    "DBT627V8Request",
     "Cnab400Request",
     # Factories
     "CnabBuilderFactory",

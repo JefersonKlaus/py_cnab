@@ -52,16 +52,16 @@ class Cnab400EmpresaData(EmpresaData):
 
 @dataclass
 class DebitoAutomaticoData:
-    """Dados para débito automático CNAB 150."""
+    """Dados para débito automático CNAB 150 (DBT627 V8)."""
 
     id_cliente_empresa: str
-    agencia_debito: str
-    conta_cliente: str
+    agencia: str
+    conta: str
+    conta_dv: str
     vencimento: date
     valor: Decimal
-    tipo_inscricao: str  # '1' = CNPJ, '2' = CPF
-    inscricao: str
-    codigo_interno: str = ""  # Control interno da instituição (53 chars)
+    pagador: "PagadorData"  # Dados do pagador (CPF/CNPJ)
+    observacao: str = ""  # Observação/uso da instituição destinatária (53 chars)
     tipo_operacao: str = "1"  # '1', '2' ou '3'
     codigo_movimento: str = "0"
     utilizacao_cheque_especial: str = (
@@ -74,16 +74,16 @@ class DebitoAutomaticoData:
     def __post_init__(self):
         if not self.id_cliente_empresa:
             raise ValueError("ID do cliente na empresa é obrigatório")
-        if not self.agencia_debito:
-            raise ValueError("Agência para débito é obrigatória")
-        if not self.conta_cliente:
-            raise ValueError("Conta do cliente é obrigatória")
+        if not self.agencia:
+            raise ValueError("Agência é obrigatória")
+        if not self.conta:
+            raise ValueError("Conta é obrigatória")
+        if not self.conta_dv:
+            raise ValueError("Dígito verificador da conta é obrigatório")
         if self.valor <= 0:
             raise ValueError("Valor deve ser positivo")
-        if self.tipo_inscricao not in ["1", "2"]:
-            raise ValueError("Tipo de inscrição deve ser '1' (CNPJ) ou '2' (CPF)")
-        if not self.inscricao:
-            raise ValueError("Inscrição (CPF/CNPJ) é obrigatória")
+        if not isinstance(self.pagador, PagadorData):
+            raise ValueError("Pagador deve ser um objeto PagadorData")
         if self.tipo_operacao not in ["1", "2", "3"]:
             raise ValueError("Tipo de operação deve ser '1', '2' ou '3'")
 
@@ -91,39 +91,35 @@ class DebitoAutomaticoData:
         if isinstance(self.valor, (int, float)):
             self.valor = Decimal(str(self.valor))
 
-        # Limpa caracteres não numéricos da inscrição
-        self.inscricao = "".join(filter(str.isdigit, self.inscricao))
-
-        # Valida tamanho da inscrição
-        if self.tipo_inscricao == "2":  # CPF
-            if len(self.inscricao) != 11:
-                raise ValueError("CPF deve ter exatamente 11 dígitos")
-        elif self.tipo_inscricao == "1":  # CNPJ
-            if len(self.inscricao) != 14:
-                raise ValueError("CNPJ deve ter exatamente 14 dígitos")
-
 
 @dataclass
 class PagadorData:
-    """Dados do pagador para cobrança."""
+    """Dados do pagador para cobrança e débito automático."""
 
-    tipo_inscricao: str  # '01' = CPF, '02' = CNPJ
+    tipo_inscricao: int  # 1 = CNPJ, 2 = CPF (para débito)
     inscricao: str
-    nome: str
-    endereco: str
-    cep: str
+    nome: str = ""
+    endereco: str = ""
+    cep: str = ""
 
     def __post_init__(self):
-        if self.tipo_inscricao not in ["01", "02"]:
-            raise ValueError("Tipo de inscrição deve ser '01' (CPF) ou '02' (CNPJ)")
+        if self.tipo_inscricao not in [1, 2]:
+            raise ValueError("Tipo de inscrição deve ser 1 (CNPJ) ou 2 (CPF)")
+
         if not self.inscricao:
             raise ValueError("Inscrição (CPF/CNPJ) é obrigatória")
-        if not self.nome:
-            raise ValueError("Nome do pagador é obrigatório")
-        if not self.endereco:
-            raise ValueError("Endereço é obrigatório")
-        if not self.cep:
-            raise ValueError("CEP é obrigatório")
+
+        # Limpa caracteres não numéricos da inscrição
+        self.inscricao = "".join(filter(str.isdigit, self.inscricao))
+
+        # Valida tamanho da inscrição se tipo_inscricao for int
+        if isinstance(self.tipo_inscricao, int):
+            if self.tipo_inscricao == 2:  # CPF
+                if len(self.inscricao) != 11:
+                    raise ValueError("CPF deve ter exatamente 11 dígitos")
+            elif self.tipo_inscricao == 1:  # CNPJ
+                if len(self.inscricao) != 14:
+                    raise ValueError("CNPJ deve ter exatamente 14 dígitos")
 
 
 @dataclass
@@ -177,8 +173,8 @@ class CnabRequest:
 
 
 @dataclass
-class Cnab150Request(CnabRequest):
-    """Request específico para CNAB 150."""
+class DBT627V8Request(CnabRequest):
+    """Request específico para CNAB 150 / DBT627 Versão 08 (Débito Automático)."""
 
     empresa: Cnab150EmpresaData
     debitos: List[DebitoAutomaticoData] = field(default_factory=list)

@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from src import (
     Cnab150EmpresaData,
-    Cnab150Request,
+    DBT627V8Request,
     Cnab400EmpresaData,
     Cnab400Request,
     CnabGenerator,
@@ -34,28 +34,34 @@ def exemplo_cnab_150():
         debitos = [
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO-001",
-                agencia_debito="1234",
-                conta_cliente="555667",
+                agencia="1234",
+                conta="55566",
+                conta_dv="7",
                 vencimento=date(2025, 10, 20),
                 valor=Decimal("199.99"),
-                tipo_inscricao="2",  # CPF
-                inscricao="11144477735",  # CPF do cliente válido
+                pagador=PagadorData(
+                    tipo_inscricao=2,  # CPF
+                    inscricao="11144477735",  # CPF do cliente válido
+                ),
                 tipo_operacao="1",  # Tipo de operação
             ),
             DebitoAutomaticoData(
                 id_cliente_empresa="FATURA-XYZ-02",
-                agencia_debito="4321",
-                conta_cliente="987654",
+                agencia="4321",
+                conta="98765",
+                conta_dv="4",
                 vencimento=date(2025, 10, 22),
                 valor=Decimal("50.00"),
-                tipo_inscricao="1",  # CNPJ
-                inscricao="12.345.678/0001-90",  # CNPJ do cliente
+                pagador=PagadorData(
+                    tipo_inscricao=1,  # CNPJ
+                    inscricao="12.345.678/0001-90",  # CNPJ do cliente
+                ),
                 tipo_operacao="1",  # Tipo de operação
             ),
         ]
 
         # Monta a requisição
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=debitos)
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=debitos)
 
         # Gera o arquivo
         arquivo_cnab = CnabGenerator.generate_cnab_150(request)

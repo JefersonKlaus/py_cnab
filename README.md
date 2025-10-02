@@ -39,7 +39,7 @@ from datetime import date
 from decimal import Decimal
 from src import (
     CnabGenerator, Cnab150EmpresaData, 
-    DebitoAutomaticoData, Cnab150Request
+    DebitoAutomaticoData, DBT627V8Request
 )
 
 # Dados da empresa
@@ -60,7 +60,7 @@ debito = DebitoAutomaticoData(
 )
 
 # Gera o arquivo
-request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
 arquivo = CnabGenerator.generate_cnab_150(request)
 
 # Salva o arquivo

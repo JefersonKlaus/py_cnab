@@ -7,7 +7,13 @@ from decimal import Decimal
 
 import pytest
 
-from src import Cnab150EmpresaData, Cnab150Request, CnabGenerator, DebitoAutomaticoData
+from src import (
+    Cnab150EmpresaData,
+    DBT627V8Request,
+    CnabGenerator,
+    DebitoAutomaticoData,
+    PagadorData,
+)
 
 
 class TestCnab150Rules:
@@ -24,16 +30,19 @@ class TestCnab150Rules:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789",
+            agencia="1234",
+            conta="5678",
+            conta_dv="9",
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11144477735",
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11144477735",
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         linhas = arquivo.strip().split("\r\n")
@@ -54,16 +63,19 @@ class TestCnab150Rules:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789",
+            agencia="1234",
+            conta="5678",
+            conta_dv="9",
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11144477735",  # CPF válido
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11144477735",  # CPF válido
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         linhas = arquivo.strip().split("\r\n")
@@ -86,16 +98,19 @@ class TestCnab150Rules:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789",
+            agencia="1234",
+            conta="5678",
+            conta_dv="9",
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="1",  # CNPJ
-            inscricao="12345678000190",  # CNPJ válido
+            pagador=PagadorData(
+                tipo_inscricao=1,  # CNPJ
+                inscricao="12345678000190",  # CNPJ válido
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         linhas = arquivo.strip().split("\r\n")
@@ -120,16 +135,19 @@ class TestCnab150Rules:
         for tipo_operacao in ["1", "2", "3"]:
             debito = DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789",
+                agencia="1234",
+                conta="5678",
+                conta_dv="9",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
-                tipo_inscricao="2",  # CPF
-                inscricao="11144477735",
+                pagador=PagadorData(
+                    tipo_inscricao=2,  # CPF
+                    inscricao="11144477735",
+                ),
                 tipo_operacao=tipo_operacao,
             )
 
-            request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+            request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
             arquivo = CnabGenerator.generate_cnab_150(request)
 
             linhas = arquivo.strip().split("\r\n")
@@ -153,16 +171,19 @@ class TestCnab150Rules:
         # Testa com conta alfanumérica
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="6831",  # Conta que estava gerando o problema
+            agencia="1234",
+            conta="683",
+            conta_dv="1",  # Conta que estava gerando o problema
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11144477735",
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11144477735",
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         linhas = arquivo.strip().split("\r\n")
@@ -178,16 +199,19 @@ class TestCnab150Rules:
         # Testa com conta mais longa
         debito2 = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO002",
-            agencia_debito="1234",
-            conta_cliente="123456789012345",  # 15 caracteres
+            agencia="1234",
+            conta="12345678901234",
+            conta_dv="5",  # 15 caracteres
             vencimento=date(2025, 10, 30),
             valor=Decimal("200.00"),
-            tipo_inscricao="2",
-            inscricao="11144477735",
+            pagador=PagadorData(
+                tipo_inscricao=2,
+                inscricao="11144477735",
+            ),
             tipo_operacao="1",
         )
 
-        request2 = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito2])
+        request2 = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito2])
         arquivo2 = CnabGenerator.generate_cnab_150(request2)
 
         linhas2 = arquivo2.strip().split("\r\n")
@@ -210,16 +234,19 @@ class TestCnab150Rules:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789",
+            agencia="1234",
+            conta="5678",
+            conta_dv="9",
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11144477735",
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11144477735",
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         linhas = arquivo.strip().split("\r\n")
@@ -246,6 +273,7 @@ class TestCnab150Rules:
         # E11 - Tipo de operação (posição 146) deve ser "1"
         if len(detalhe) >= 146:
             tipo_operacao = detalhe[145:146]
+            assert tipo_operacao == "1", f"Tipo de operação incorreto: {tipo_operacao}"
             assert tipo_operacao == "1", f"Tipo de operação incorreto: {tipo_operacao}"
 
 

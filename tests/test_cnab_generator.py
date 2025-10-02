@@ -10,11 +10,12 @@ import pytest
 from src import CnabGenerator
 from src.models import (
     Cnab150EmpresaData,
-    Cnab150Request,
+    DBT627V8Request,
     Cnab400EmpresaData,
     Cnab400Request,
     CobrancaData,
     DebitoAutomaticoData,
+    PagadorData,
     PagadorData,
 )
 
@@ -58,33 +59,43 @@ class TestModels:
                 codigo_empresa="",
                 nome_empresa="TESTE",
             )
+
+    def test_debito_automatico_data_valid(self):
         """Testa criação válida de débito automático."""
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789-0",
+            agencia="1234",
+            conta="56789",
+            conta_dv="0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11144477735",  # CPF válido
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11144477735",  # CPF válido
+            ),
             tipo_operacao="1",
         )
         assert debito.id_cliente_empresa == "CONTRATO001"
         assert debito.valor == Decimal("199.99")
-        assert debito.tipo_inscricao == "2"
-        assert debito.inscricao == "11144477735"  # Limpo de caracteres especiais
+        assert debito.pagador.tipo_inscricao == 2
+        assert (
+            debito.pagador.inscricao == "11144477735"
+        )  # Limpo de caracteres especiais
 
     def test_debito_automatico_data_invalid_valor(self):
         """Testa validação de valor inválido."""
         with pytest.raises(ValueError, match="Valor deve ser positivo"):
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789-0",
+                agencia="1234",
+                conta="56789",
+                conta_dv="0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("0"),
-                tipo_inscricao="2",
-                inscricao="11122233344",
+                pagador=PagadorData(
+                    tipo_inscricao=2,
+                    inscricao="11122233344",
+                ),
                 tipo_operacao="1",
             )
 
@@ -92,16 +103,19 @@ class TestModels:
         """Testa validação de tipo de inscrição inválido."""
         with pytest.raises(
             ValueError,
-            match="Tipo de inscrição deve ser '1' \\(CNPJ\\) ou '2' \\(CPF\\)",
+            match="Tipo de inscrição deve ser 1 \\(CNPJ\\) ou 2 \\(CPF\\)",
         ):
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789-0",
+                agencia="1234",
+                conta="56789",
+                conta_dv="0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
-                tipo_inscricao="3",  # Tipo inválido
-                inscricao="11122233344",
+                pagador=PagadorData(
+                    tipo_inscricao=3,  # Tipo inválido
+                    inscricao="11122233344",
+                ),
                 tipo_operacao="1",
             )
 
@@ -110,12 +124,15 @@ class TestModels:
         with pytest.raises(ValueError, match="CPF deve ter exatamente 11 dígitos"):
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789-0",
+                agencia="1234",
+                conta="56789",
+                conta_dv="0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
-                tipo_inscricao="2",  # CPF
-                inscricao="123456789",  # CPF com apenas 9 dígitos
+                pagador=PagadorData(
+                    tipo_inscricao=2,  # CPF
+                    inscricao="123456789",  # CPF com apenas 9 dígitos
+                ),
                 tipo_operacao="1",
             )
 
@@ -124,12 +141,15 @@ class TestModels:
         with pytest.raises(ValueError, match="CNPJ deve ter exatamente 14 dígitos"):
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789-0",
+                agencia="1234",
+                conta="56789",
+                conta_dv="0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
-                tipo_inscricao="1",  # CNPJ
-                inscricao="123456789012",  # CNPJ com apenas 12 dígitos
+                pagador=PagadorData(
+                    tipo_inscricao=1,  # CNPJ
+                    inscricao="123456789012",  # CNPJ com apenas 12 dígitos
+                ),
                 tipo_operacao="1",
             )
 
@@ -137,16 +157,19 @@ class TestModels:
         """Testa limpeza de caracteres especiais na inscrição."""
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789-0",
+            agencia="1234",
+            conta="56789",
+            conta_dv="0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("100.00"),
-            tipo_inscricao="1",  # CNPJ
-            inscricao="12.345.678/0001-90",  # CNPJ com formatação
+            pagador=PagadorData(
+                tipo_inscricao=1,  # CNPJ
+                inscricao="12.345.678/0001-90",  # CNPJ com formatação
+            ),
             tipo_operacao="1",
         )
         # Deve remover caracteres especiais
-        assert debito.inscricao == "12345678000190"
+        assert debito.pagador.inscricao == "12345678000190"
 
     def test_debito_automatico_data_invalid_tipo_operacao(self):
         """Testa validação de tipo de operação inválido."""
@@ -155,12 +178,15 @@ class TestModels:
         ):
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO001",
-                agencia_debito="1234",
-                conta_cliente="56789-0",
+                agencia="1234",
+                conta="56789",
+                conta_dv="0",
                 vencimento=date(2025, 10, 30),
                 valor=Decimal("100.00"),
-                tipo_inscricao="2",  # CPF
-                inscricao="11122233344",
+                pagador=PagadorData(
+                    tipo_inscricao=2,  # CPF
+                    inscricao="11122233344",
+                ),
                 tipo_operacao="4",  # Tipo inválido
             )
 
@@ -179,16 +205,19 @@ class TestCnabGenerator:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789-0",
+            agencia="1234",
+            conta="56789",
+            conta_dv="0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
-            tipo_inscricao="2",  # CPF
-            inscricao="11122233344",  # CPF válido
+            pagador=PagadorData(
+                tipo_inscricao=2,  # CPF
+                inscricao="11122233344",  # CPF válido
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         # Verifica se o arquivo foi gerado
@@ -213,16 +242,19 @@ class TestCnabGenerator:
 
         debito = DebitoAutomaticoData(
             id_cliente_empresa="CONTRATO001",
-            agencia_debito="1234",
-            conta_cliente="56789-0",
+            agencia="1234",
+            conta="56789",
+            conta_dv="0",
             vencimento=date(2025, 10, 30),
             valor=Decimal("199.99"),
-            tipo_inscricao="1",  # CNPJ
-            inscricao="12.345.678/0001-90",
+            pagador=PagadorData(
+                tipo_inscricao=1,  # CNPJ
+                inscricao="12.345.678/0001-90",
+            ),
             tipo_operacao="1",
         )
 
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
         arquivo = CnabGenerator.generate_cnab_150(request)
 
         # Valida o arquivo
