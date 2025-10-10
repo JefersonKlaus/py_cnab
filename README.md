@@ -39,12 +39,11 @@ from datetime import date
 from decimal import Decimal
 from src import (
     CnabGenerator, Cnab150EmpresaData, 
-    DebitoAutomaticoData, Cnab150Request
+    DebitoAutomaticoData, DBT627V8Request
 )
 
 # Dados da empresa
 empresa = Cnab150EmpresaData(
-    codigo_empresa="123456789",
     nome_empresa="MINHA EMPRESA",
     codigo_convenio="12345678901234567890",
     codigo_banco="237",
@@ -61,7 +60,7 @@ debito = DebitoAutomaticoData(
 )
 
 # Gera o arquivo
-request = Cnab150Request(nsa=1, empresa=empresa, debitos=[debito])
+request = DBT627V8Request(nsa=1, empresa=empresa, debitos=[debito])
 arquivo = CnabGenerator.generate_cnab_150(request)
 
 # Salva o arquivo
@@ -178,7 +177,7 @@ A biblioteca inclui validação automática:
 # Validação automática nos models
 try:
     empresa = Cnab150EmpresaData(
-        codigo_empresa="",  # ❌ Erro: obrigatório
+        nome_empresa="",  # ❌ Erro: obrigatório
         # ...
     )
 except ValueError as e:
@@ -212,9 +211,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## 📞 Suporte
 
-- 📧 Email: [seu-email@exemplo.com]
+- 📧 Email: [jefersonklaus@gmail.com]
 - 🐛 Issues: [GitHub Issues](https://github.com/JefersonKlaus/py_cnab/issues)
-- 📖 Documentação: [Wiki do Projeto](https://github.com/JefersonKlaus/py_cnab/wiki)
 
 ---
 

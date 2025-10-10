@@ -6,12 +6,12 @@ from datetime import date
 from typing import List
 
 from ..interfaces import ICnabBuilder
-from ..models import Cnab150Request, CnabRequest
-from ..utils import CnabFieldFormatter, CnabValidator, CnabConstants
+from ..models import DBT627V8Request, CnabRequest
+from ..utils import CnabConstants, CnabFieldFormatter, CnabValidator
 
 
 class Cnab150Builder(ICnabBuilder):
-    """Construtor para arquivos CNAB 150 (Débito Automático)."""
+    """Construtor para arquivos CNAB 150/DBT627 - Versão 08 (Débito Automático)."""
 
     def __init__(self):
         self.formatter = CnabFieldFormatter()
@@ -23,8 +23,8 @@ class Cnab150Builder(ICnabBuilder):
 
     def build_header(self, request: CnabRequest) -> str:
         """Constrói o registro Header (Registro "A")."""
-        if not isinstance(request, Cnab150Request):
-            raise TypeError("Request deve ser do tipo Cnab150Request")
+        if not isinstance(request, DBT627V8Request):
+            raise TypeError("Request deve ser do tipo DBT627V8Request")
 
         empresa = request.empresa
 
@@ -71,8 +71,8 @@ class Cnab150Builder(ICnabBuilder):
 
     def build_detail_records(self, request: CnabRequest) -> List[str]:
         """Constrói os registros de detalhe de Débito em Conta (Registro "E")."""
-        if not isinstance(request, Cnab150Request):
-            raise TypeError("Request deve ser do tipo Cnab150Request")
+        if not isinstance(request, DBT627V8Request):
+            raise TypeError("Request deve ser do tipo DBT627V8Request")
 
         registros = []
 
@@ -85,10 +85,12 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field(debito.id_cliente_empresa, 25)
 
             # E03 - Posição 027-030: Agência para Débito (4 chars)
-            detalhe += self.formatter.format_field(debito.agencia_debito, 4)
+            detalhe += self.formatter.format_field(debito.agencia, 4, "0", True)
 
             # E04 - Posição 031-050: Identificação do Cliente na Depositária (Conta) (20 chars)
-            detalhe += self.formatter.format_field(debito.conta_cliente, 20)
+            # Combina conta + dígito verificador
+            conta_completa = debito.conta + debito.conta_dv
+            detalhe += self.formatter.format_field(conta_completa, 20)
 
             # E05 - Posição 051-058: Data do Vencimento (AAAAMMDD) (8 chars)
             detalhe += self.formatter.format_field(
@@ -104,25 +106,41 @@ class Cnab150Builder(ICnabBuilder):
             detalhe += self.formatter.format_field(CnabConstants.REAL, 2)
 
             # E08 - Posição 076-128: Uso da Instituição Destinatária (53 chars)
-            detalhe += self.formatter.format_field("", 53)
+            detalhe += self.formatter.format_field(debito.observacao, 53)
 
             # Posição 129-129: Campo relacionado ao E08 para tratamento acordado (1 char)
             detalhe += self.formatter.format_field("", 1)
 
             # E09 - Posição 130-130: Tipo de Identificação (1=CNPJ, 2=CPF) (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            detalhe += self.formatter.format_field(
+                str(debito.pagador.tipo_inscricao), 1
+            )
 
             # E10 - Posição 131-145: Identificação (Número do CPF/CNPJ) (15 chars)
-            detalhe += self.formatter.format_field("", 15, "0", True)
+            # Preenchido com zeros à esquerda conforme manual CNAB 150
+            inscricao_formatada = self.formatter.format_inscricao(
+                debito.pagador.inscricao, str(debito.pagador.tipo_inscricao)
+            )
+            detalhe += inscricao_formatada
 
             # E11 - Posição 146-146: Tipo de Operação (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            detalhe += self.formatter.format_field(debito.tipo_operacao, 1)
 
             # E12 - Posição 147-147: Utilização do Cheque Especial (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            # Usa "0" como padrão se campo estiver vazio (opcional)
+            cheque_especial = (
+                debito.utilizacao_cheque_especial
+                if debito.utilizacao_cheque_especial
+                else "0"
+            )
+            detalhe += self.formatter.format_field(cheque_especial, 1)
 
             # E13 - Posição 148-148: Opção de Débito Parcial ou integral após o vencimento (1 char)
-            detalhe += self.formatter.format_field("", 1)
+            # Usa "0" como padrão se campo estiver vazio (opcional)
+            debito_parcial = (
+                debito.opcao_debito_parcial if debito.opcao_debito_parcial else "0"
+            )
+            detalhe += self.formatter.format_field(debito_parcial, 1)
 
             # E14 - Posição 149-149: Reservado para o futuro (1 char)
             detalhe += self.formatter.format_field("", 1)
@@ -145,7 +163,7 @@ class Cnab150Builder(ICnabBuilder):
                 self.formatter.format_currency_cents(debito.valor)
                 for debito in request.debitos
             )
-            if isinstance(request, Cnab150Request)
+            if isinstance(request, DBT627V8Request)
             else 0
         )
 
@@ -154,10 +172,10 @@ class Cnab150Builder(ICnabBuilder):
         trailer += self.formatter.format_field(CnabConstants.TRAILER_RECORD, 1)
 
         # Z02 - Posição 002-007: Total de registros do arquivo (6 chars)
-        trailer += self.formatter.format_field(total_records, 6, "0", True)
+        trailer += self.formatter.format_field(str(total_records), 6, "0", True)
 
         # Z03 - Posição 008-024: Valor total dos registros do arquivo (17 chars) - em centavos
-        trailer += self.formatter.format_field(valor_total, 17, "0", True)
+        trailer += self.formatter.format_field(str(valor_total), 17, "0", True)
 
         # Z04 - Posição 025-150: Reservado para o futuro (126 chars)
         trailer += self.formatter.format_field("", 126)

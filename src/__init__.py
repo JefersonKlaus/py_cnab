@@ -3,19 +3,19 @@ API pública da biblioteca py_cnab.
 Fornece uma interface simplificada para uso externo.
 """
 
-from .models import (
-    EmpresaData,
-    Cnab150EmpresaData,
-    Cnab400EmpresaData,
-    DebitoAutomaticoData,
-    PagadorData,
-    CobrancaData,
-    CnabRequest,
-    Cnab150Request,
-    Cnab400Request,
-)
-from .services import CnabGeneratorService, CnabFileService
 from .factories import CnabBuilderFactory, CnabFormat
+from .models import (
+    Cnab150EmpresaData,
+    DBT627V8Request,
+    Cnab400EmpresaData,
+    Cnab400Request,
+    CnabRequest,
+    CobrancaData,
+    DebitoAutomaticoData,
+    EmpresaData,
+    PagadorData,
+)
+from .services import CnabFileService, CnabGeneratorService
 from .utils import CnabValidator
 
 
@@ -23,7 +23,7 @@ class CnabGenerator:
     """Interface principal para geração de arquivos CNAB."""
 
     @staticmethod
-    def generate_cnab_150(request: Cnab150Request) -> str:
+    def generate_cnab_150(request: DBT627V8Request) -> str:
         """Gera arquivo CNAB 150 (Débito Automático)."""
         builder = CnabBuilderFactory.create_builder(CnabFormat.CNAB_150_DEBITO.value)
         service = CnabGeneratorService(builder)
@@ -65,7 +65,7 @@ __all__ = [
     "PagadorData",
     "CobrancaData",
     "CnabRequest",
-    "Cnab150Request",
+    "DBT627V8Request",
     "Cnab400Request",
     # Factories
     "CnabBuilderFactory",

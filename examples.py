@@ -6,14 +6,14 @@ from datetime import date
 from decimal import Decimal
 
 from src import (
-    CnabGenerator,
     Cnab150EmpresaData,
+    DBT627V8Request,
     Cnab400EmpresaData,
+    Cnab400Request,
+    CnabGenerator,
+    CobrancaData,
     DebitoAutomaticoData,
     PagadorData,
-    CobrancaData,
-    Cnab150Request,
-    Cnab400Request,
 )
 
 
@@ -24,9 +24,8 @@ def exemplo_cnab_150():
     try:
         # Dados da empresa
         empresa = Cnab150EmpresaData(
-            codigo_empresa="123456789",
             nome_empresa="MINHA EMPRESA DE TESTE",
-            codigo_convenio="12345678901234567890",
+            codigo_convenio="18732000000000000000",
             codigo_banco="237",
             nome_banco="BRADESCO",
         )
@@ -35,22 +34,34 @@ def exemplo_cnab_150():
         debitos = [
             DebitoAutomaticoData(
                 id_cliente_empresa="CONTRATO-001",
-                agencia_debito="1234",
-                conta_cliente="55566-7",
+                agencia="1234",
+                conta="55566",
+                conta_dv="7",
                 vencimento=date(2025, 10, 20),
                 valor=Decimal("199.99"),
+                pagador=PagadorData(
+                    tipo_inscricao=2,  # CPF
+                    inscricao="11144477735",  # CPF do cliente válido
+                ),
+                tipo_operacao="1",  # Tipo de operação
             ),
             DebitoAutomaticoData(
                 id_cliente_empresa="FATURA-XYZ-02",
-                agencia_debito="4321",
-                conta_cliente="98765-4",
+                agencia="4321",
+                conta="98765",
+                conta_dv="4",
                 vencimento=date(2025, 10, 22),
                 valor=Decimal("50.00"),
+                pagador=PagadorData(
+                    tipo_inscricao=1,  # CNPJ
+                    inscricao="12.345.678/0001-90",  # CNPJ do cliente
+                ),
+                tipo_operacao="1",  # Tipo de operação
             ),
         ]
 
         # Monta a requisição
-        request = Cnab150Request(nsa=1, empresa=empresa, debitos=debitos)
+        request = DBT627V8Request(nsa=1, empresa=empresa, debitos=debitos)
 
         # Gera o arquivo
         arquivo_cnab = CnabGenerator.generate_cnab_150(request)
@@ -62,8 +73,8 @@ def exemplo_cnab_150():
         print(arquivo_cnab)
 
         # Salva o arquivo (opcional)
-        # CnabGenerator.save_file(arquivo_cnab, "debito_150.rem")
-        # print("Arquivo salvo como 'debito_150.rem'")
+        CnabGenerator.save_file(arquivo_cnab, "debito_150.rem")
+        print("Arquivo salvo como 'debito_150.rem'")
 
         # Valida o arquivo
         errors = CnabGenerator.validate_file(arquivo_cnab, "150_debito")
